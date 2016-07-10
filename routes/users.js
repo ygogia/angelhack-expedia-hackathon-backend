@@ -18,6 +18,12 @@ router.route('/user/:email')
 router.route('/user/')
   .post(userController.postUser);
 
+router.route('/user/add-trip')
+  .post(userController.addTrip);
+
+router.route('/user/del-trip')
+  .post(userController.deleteTrip);
+
 router.route('/login')
   .post(userController.login);
 
@@ -29,7 +35,6 @@ router.route('/trip/')
 
 router.route('/trip/update')
   .post(tripController.updateTrip);
-
 
 router.route('/expedia')
   .get(sentimentController.expedia);

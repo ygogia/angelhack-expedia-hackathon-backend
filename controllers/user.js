@@ -1,4 +1,6 @@
 var User = require('../models/user');
+var Trip = require('../models/trip');
+
 exports.postUser = function(req,res){
 	User.findOne({'email':req.body.email},function(err,user){
 		if(err) res.send(err);
@@ -10,6 +12,8 @@ exports.postUser = function(req,res){
 			newUser.email = req.body.email;
 			newUser.password = req.body.password;
 			newUser.name	 = req.body.name;
+			newUser.d_id = req.body.d_id;
+			newUser.trips = undefined;
 
 			newUser.save(function(err){
 				if(err) res.send(err);
@@ -24,6 +28,7 @@ exports.getUser = function(req, res) {
   User.findOne({'email':req.params.email}, function(err, user) {
     if (err)
       res.send(err);
+  	user.password = undefined;
     res.json(user);
   });
 };
@@ -37,9 +42,132 @@ exports.login = function(req, res) {
   	  res.json({isSuccess:true,message:'Login Successful',user:user});
   });
 };
-exports.addTrip = function(email,trip) {
-  
+Array.prototype.removeValue = function(name, value){
+   var array = $.map(this, function(v,i){
+      return v[name] === value ? null : v;
+   });
+   this.length = 0; //clear original array
+   this.push.apply(this, array); //push all elements except the one we want to delete
+}
+exports.addTrip = function(req, res) {
+  User.findOne({'email':req.body.email}, function(err, user) {
+    if (err)
+      res.send(err);
+  	if(!user)
+  	  res.json({isSuccess:false,message:'User Not Found'});
+  	if(user){
+  		    Trip.findOne({'handle':req.body.handle},function(err, trip){
+  			  if (err)
+      			res.send(err);
+      		if(trip){
+            var tripExists = false
+            for(var i in user.trips){
+              if (user.trips[i].handle==req.body.handle.trim())
+                tripExists = true
+            }
+            if(tripExists)
+              res.json({isSuccess:false,message:'Trip Already Exists.'});
+            else{
+            trip.users.push({'user':req.body.email,'isAdmin':req.body.isAdmin});
+            trip.save(function(err){
+              if(err) 
+                res.send(err);
+              if(undefined==user.trips){
+                var trips = [];
+                trips.push({'handle':req.body.handle,'isAdmin':req.body.isAdmin});
+                user.trips = trips;
+              }else{
+                user.trips.push({'handle':req.body.handle,'isAdmin':req.body.isAdmin});
+              }
+              user.save(function(err){
+              if(err)  res.send(err);
+                res.json({isSuccess: true});
+              });
+              res.json({isSuccess:true,message:'Trip Addition Successful',user:user});
+            });
+            }
+          }
+
+          if(!trip){
+            var newTrip = new Trip();
+            newTrip.handle = req.body.handle;
+            newTrip.isBooked = false;
+            newTrip.admin = req.body.email;
+            newTrip.users.push({'user':req.body.email,'isAdmin':req.body.isAdmin});
+            newTrip.save(function(err){
+            if(err) 
+              res.send(err);
+            if(undefined==user.trips){
+              var trips = [];
+              trips.push({'handle':req.body.handle,'isAdmin':req.body.isAdmin});
+              user.trips = trips;
+              }else{
+                user.trips.push({'handle':req.body.handle,'isAdmin':req.body.isAdmin});              
+              }
+              user.save(function(err){
+              if(err)  res.send(err);
+                res.json({isSuccess: true});
+              });
+              res.json({isSuccess:true,message:'Trip Addition Successful',user:user});
+            });
+          }
+      });
+  	}
+  });
 };
-process.on('uncaughtException', function(err) {
-  console.log('Caught exception: ' + err);
-});
+
+exports.deleteTrip = function(req, res) {
+  User.findOne({'email':req.body.email}, function(err, user) {
+    if (err)
+      res.send(err);
+    if(!user)
+      res.json({isSuccess:false,message:'User does Not Exists.'});
+    if(user){
+          Trip.findOne({'handle':req.body.handle},function(err, trip){
+          if (err)
+            res.send(err);
+          if(trip){
+            var tripExists = false
+            for(var i in user.trips){
+              if (user.trips[i].handle==req.body.handle.trim())
+                tripExists = true
+            }
+            if(tripExists){
+              var tripArray = [];
+              var tripUsersIndex;
+              var userTripsIndex;
+              var userArray = [];
+              for(var i in user.trips){
+                if (user.trips[i].handle==req.body.handle.trim())
+                  userTripsIndex = i;    
+              }
+              for(var i in trip.users){
+                if (trip.users[i].user==req.body.email.trim())
+                 tripUsersIndex = i; 
+              }
+              trip.users.splice(tripUsersIndex,1);
+              user.trips.splice(userTripsIndex,1);
+
+              trip.save(function(err){
+                if(err) 
+                  res.send(err);
+                user.save(function(err){
+                if(err)  res.send(err);
+                  res.json({isSuccess: true});
+                });
+                res.json({isSuccess:true,message:'Trip Deleted',user:user});
+              });
+            }
+            else{
+              res.json({isSuccess:false,message:'Trip Not Added to user'});
+            }
+          }
+
+          if(!trip){
+              res.json({isSuccess:false,message:'Trip Does not Exists.'});
+          }
+
+      });
+    }
+  });
+};
