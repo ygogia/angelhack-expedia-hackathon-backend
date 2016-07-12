@@ -17,6 +17,66 @@ Trip.findOne({'trip':req.body.handle},function(err,trip){
     }
 });
 };
+
+exports.tripDetailsAdd = function(req,res){
+Trip.findOne({'trip':req.body.handle},function(err,trip){
+    if(err) res.send(err);
+    if(!trip) {
+        res.json({isSuccess:false,message:'Trip Does`nt Exist'});
+    }
+    if(trip){
+        trip.pickup = req.body.pickup;
+        trip.start = req.body.start;
+        trip.end = req.body.end;
+        trip.step = req.body.step;
+        trip.places = req.body.places==undefined?[]:req.body.places;
+        trip.moods = req.body.moods==undefined?[]:req.body.moods;
+
+        newTrip.save(function(err){
+            if(err) res.send(err);
+                res.json({isSuccess:true,message:'Trip Updated'});
+        });
+    }
+});
+};
+
+exports.changeStatus= function(req,res){
+Trip.findOne({'trip':req.body.handle},function(err,trip){
+    if(err) res.send(err);
+    if(!trip) {
+        res.json({isSuccess:false,message:'Trip Does`nt Exist'});
+    }
+    if(trip){
+        trip.step = req.body.step;
+
+        newTrip.save(function(err){
+            if(err) res.send(err);
+                res.json({isSuccess:true,message:'Trip Updated'});
+        });
+    }
+});
+};
+
+
+
+exports.createTrip = function(req,res){
+Trip.findOne({'trip':req.body.handle},function(err,trip){
+    if(err) res.send(err);
+    if(trip) {
+        res.json({isSuccess:false,message:'Trip Already Exists'});
+    }
+    if(!trip){
+        var newTrip = new Trip();
+        newTrip.handle = req.body.handle;
+
+        newTrip.save(function(err){
+            if(err) res.send(err);
+                res.json({isSuccess:true,message:'Trip Created'});
+        });
+    }
+});
+};
+
 exports.getTrip = function(req, res) {
 Trip.findOne({'handle':req.params.handle}, function(err, trip) {
 if (err)

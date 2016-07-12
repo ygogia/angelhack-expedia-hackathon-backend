@@ -7,6 +7,10 @@ var TripSchema = new Schema({
 		users: {type:Array},
 		places: {type:Array},
 		moods: {type:Array},
-		isBooked: {type: Boolean}
+		isBooked: {type: Boolean},
+		pickup: {type:String},
+		start:{type:String},
+		end:{type:String},
+		step:{type: Number},
 	});
 module.exports =  mongoose.model('trip',TripSchema);

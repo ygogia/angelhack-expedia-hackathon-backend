@@ -1,5 +1,6 @@
-var User = require('../models/user');
 var Trip = require('../models/trip');
+var User = require('../models/user');
+
 
 exports.postUser = function(req,res){
 	User.findOne({'email':req.body.email},function(err,user){
@@ -68,7 +69,7 @@ exports.addTrip = function(req, res) {
             if(tripExists)
               res.json({isSuccess:false,message:'Trip Already Exists.'});
             else{
-            trip.users.push({'user':req.body.email,'isAdmin':req.body.isAdmin});
+            trip.users.push({'user':req.body.email,'isAdmin':req.body.isAdmin,'d_id':user.d_id});
             trip.save(function(err){
               if(err) 
                 res.send(err);
@@ -93,7 +94,7 @@ exports.addTrip = function(req, res) {
             newTrip.handle = req.body.handle;
             newTrip.isBooked = false;
             newTrip.admin = req.body.email;
-            newTrip.users.push({'user':req.body.email,'isAdmin':req.body.isAdmin});
+            newTrip.users.push({'user':req.body.email,'isAdmin':req.body.isAdmin,'d_id':user.d_id});
             newTrip.save(function(err){
             if(err) 
               res.send(err);

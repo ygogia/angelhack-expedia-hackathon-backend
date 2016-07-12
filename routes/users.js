@@ -24,6 +24,9 @@ router.route('/user/add-trip')
 router.route('/user/del-trip')
   .post(userController.deleteTrip);
 
+router.route('/trip/trip-det')
+  .post(tripController.tripDetailsAdd);
+
 router.route('/login')
   .post(userController.login);
 
